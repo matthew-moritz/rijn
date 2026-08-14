@@ -1,0 +1,29 @@
+# Bundler
+.bundle/
+
+# Generated documentation
+.yardoc/
+doc/
+
+# Coverage
+coverage/
+
+# Built gems
+*.gem
+
+# Ruby artifacts
+*.rbc
+
+# Local environment
+.env
+.env.*
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
