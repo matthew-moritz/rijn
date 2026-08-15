@@ -1,8 +1,9 @@
 require "rijn"
+require "pastel"
 require "thor"
 require "tty-prompt"
 
-PROMPT = TTY::Prompt.new
+PROMPT = TTY::Prompt.new(interrupt: -> { puts; exit(130) })
 PASTEL = Pastel.new
 
 class RijnCLI < Thor
