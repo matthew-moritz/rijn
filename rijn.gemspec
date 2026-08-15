@@ -15,6 +15,7 @@ Gem::Specification.new do |spec|
   spec.executables = ["rijn"]
 
   spec.add_dependency "base64"
+  spec.add_dependency "pastel"
   spec.add_dependency "thor"
   spec.add_dependency "tty-prompt"
 end

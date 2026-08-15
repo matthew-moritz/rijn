@@ -3,6 +3,7 @@ PATH
   specs:
     rijn (0.2.0)
       base64
+      pastel
       thor
       tty-prompt
 
