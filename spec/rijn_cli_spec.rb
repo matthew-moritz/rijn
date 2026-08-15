@@ -40,9 +40,9 @@ RSpec.describe RijnCLI do
           "--value", value,
           "--key", key
         ])
-      
+
         encrypted = stdout.string.strip
-      
+
         expect(encrypted).not_to be_empty
         expect(Rijn.decrypt(encrypted, key)).to eq(value)
       end
@@ -99,7 +99,7 @@ RSpec.describe RijnCLI do
       }.to raise_error(SystemExit) { |error|
         expect(error.status).not_to eq(0)
       }
-    
+
       expect(stderr.string).to include("Key must be 128, 192, or 256 bits.")
     end
   end
@@ -119,7 +119,7 @@ RSpec.describe RijnCLI do
           "--value", encrypted,
           "--key", key
         ])
-      
+
         expect(stdout.string.strip).to eq(value)
       end
     end
@@ -166,26 +166,26 @@ RSpec.describe RijnCLI do
   describe "keygen" do
     it "outputs a generated encryption key with default bits" do
       key = "test-key"
-    
+
       allow(Rijn).to receive(:generate_key).and_return(key)
-    
+
       expect {
         RijnCLI.start(["keygen"])
       }.to output("#{key}\n").to_stdout
-    
+
       expect(Rijn).to have_received(:generate_key).with(256)
     end
-  
+
     [128, 192, 256].each do |bits|
       it "passes --bits #{bits} through to Rijn.generate_key" do
         key = "test-key"
-    
+
         allow(Rijn).to receive(:generate_key).with(bits).and_return(key)
-    
+
         expect {
           RijnCLI.start(["keygen", "--bits", bits])
         }.to output("#{key}\n").to_stdout
-      
+
         expect(Rijn).to have_received(:generate_key).with(bits)
       end
     end
@@ -203,7 +203,7 @@ RSpec.describe RijnCLI do
       }.to raise_error(SystemExit) { |error|
         expect(error.status).not_to eq(0)
       }
-    
+
       expect(stderr.string).to include("Key must be 128, 192, or 256 bits.")
     end
   end
