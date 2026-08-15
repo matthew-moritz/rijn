@@ -107,4 +107,4 @@ Ruby 3.4 or newer.
 
 ## License
 
-MIT. See `LICENSE.md`.
+MIT. See [LICENSE.md](LICENSE.md).
