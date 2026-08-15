@@ -1,6 +1,7 @@
 # Rijn
 
 ![CI](https://github.com/matthew-moritz/rijn/actions/workflows/main.yml/badge.svg)
+![Gem Version](https://img.shields.io/gem/v/rijn?logo=rubygems&logoColor=white&color=CC342D)
 ![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.4-CC342D?logo=ruby&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -104,6 +105,10 @@ gem install ./rijn-0.4.0.gem  # install your local build
 ## Requirements
 
 Ruby 3.4 or newer.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License
 
