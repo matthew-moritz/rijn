@@ -1,4 +1,4 @@
-require_relative "lib/rijn"
+require_relative "lib/rijn/version"
 
 Gem::Specification.new do |spec|
   spec.name = "rijn"
@@ -14,6 +14,7 @@ Gem::Specification.new do |spec|
   spec.bindir = "bin"
   spec.executables = ["rijn"]
 
+  spec.add_dependency "base64"
   spec.add_dependency "thor"
   spec.add_dependency "tty-prompt"
 end

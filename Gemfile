@@ -2,9 +2,8 @@
 
 source "https://rubygems.org"
 
-gem "base64"
-gem "thor"
-gem "tty-prompt"
-gem "rspec"
+gemspec
+
+gem "rspec", require: false
 gem "rake", require: false
 gem "yard", "~> 0.9", require: false
