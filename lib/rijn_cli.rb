@@ -15,7 +15,7 @@ class RijnCLI < Thor
     puts Rijn::VERSION
   end
 
-  desc "decrypt", "Decrypt an AES-256-GCM value."
+  desc "decrypt", "Decrypt an AES-GCM value."
   option :value, aliases: "-v"
   option :key, aliases: "-k"
   def decrypt
@@ -28,7 +28,7 @@ class RijnCLI < Thor
     exit 1
   end
 
-  desc "encrypt", "Encrypt a value using AES-256-GCM."
+  desc "encrypt", "Encrypt a value using AES-GCM."
   option :value, aliases: "-v"
   option :key, aliases: "-k"
   def encrypt
@@ -42,7 +42,11 @@ class RijnCLI < Thor
   end
 
   desc "keygen", "Generate a new encryption key."
+  option :bits, aliases: "-b", type: :numeric, default: 256, desc: "The number of bits for the key (128, 192, or 256)."
   def keygen
-    puts Rijn.generate_key
+    puts Rijn.generate_key(options[:bits])
+  rescue Rijn::InvalidKeyError => e
+    $stderr.puts "Error: #{e.message}"
+    exit 1
   end
 end

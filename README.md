@@ -1,6 +1,8 @@
 # Rijn
 
-A small Ruby library and CLI for AES-256-GCM encryption.
+A small Ruby library and CLI for AES-GCM encryption. Supports 128-bit, 192-bit, and 256-bit keys.
+
+The name "Rijn" comes from Rijndael, the cipher AES is built from. The library itself uses AES, via Ruby's OpenSSL bindings — not a custom Rijndael implementation.
 
 ## Installation
 
@@ -32,6 +34,11 @@ Generate an encryption key:
 key = Rijn.generate_key
 ```
 
+By default, this makes a 256-bit key. Pass `128`, `192`, or `256` to choose a size:
+```ruby
+key = Rijn.generate_key(128)
+```
+
 Encrypt a value:
 ```ruby
 encrypted = Rijn.encrypt("Hello, Rijn!", key)
@@ -53,6 +60,11 @@ Generate an encryption key:
 
 ```bash
 rijn keygen
+```
+
+Use `--bits` (or `-b`) to set the key size:
+```bash
+rijn keygen --bits 128
 ```
 
 Encrypt a value:
@@ -94,7 +106,7 @@ rijn help decrypt
 
 ## Key Management
 
-Rijn uses 256-bit encryption keys represented as Base64-encoded strings.
+Rijn supports 128-bit, 192-bit, and 256-bit encryption keys, represented as Base64-encoded strings. `Rijn.generate_key` uses 256 bits by default.
 
 Generate a new key with:
 
@@ -112,7 +124,7 @@ Keys should be generated using `Rijn.generate_key` rather than manually creating
 
 ## Security
 
-Rijn uses AES-256-GCM for authenticated encryption.
+Rijn uses AES-GCM for authenticated encryption, at 128, 192, or 256 bits.
 
 AES-GCM provides both:
 
