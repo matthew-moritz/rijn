@@ -3,8 +3,9 @@ require "securerandom"
 require "stringio"
 require_relative "../lib/rijn_cli"
 
-def generate_key
-  Base64.strict_encode64(SecureRandom.random_bytes(32))
+def generate_key(bits = 256)
+  bytes = Rijn::KEY_LENGTHS.fetch(bits)
+  Base64.strict_encode64(SecureRandom.random_bytes(bytes))
 end
 
 RSpec.describe RijnCLI do
@@ -25,24 +26,26 @@ RSpec.describe RijnCLI do
   end
 
   describe "encrypt" do
-    key = generate_key
-    value = "Hello, Rijn!"
+    [128, 192, 256].each do |bits|
+      it "encrypts with a #{bits}-bit key" do
+        key = generate_key(bits)
+        value = "Hello, Rijn!"
 
-    it "outputs only the encrypted value" do
-      stdout = StringIO.new
+        stdout = StringIO.new
 
-      allow($stdout).to receive(:write) { |output| stdout.write(output) }
+        allow($stdout).to receive(:write) { |output| stdout.write(output) }
 
-      RijnCLI.start([
-        "encrypt",
-        "--value", value,
-        "--key", key
-      ])
-
-      encrypted = stdout.string.strip
-
-      expect(encrypted).not_to be_empty
-      expect(Rijn.decrypt(encrypted, key)).to eq(value)
+        RijnCLI.start([
+          "encrypt",
+          "--value", value,
+          "--key", key
+        ])
+      
+        encrypted = stdout.string.strip
+      
+        expect(encrypted).not_to be_empty
+        expect(Rijn.decrypt(encrypted, key)).to eq(value)
+      end
     end
 
     it "prompts for missing values" do
@@ -79,24 +82,46 @@ RSpec.describe RijnCLI do
 
       expect(stderr.string).to include("Key is not valid Base64.")
     end
+
+    it "reports an invalid key length" do
+      key = Base64.strict_encode64(SecureRandom.random_bytes(20))
+
+      stderr = StringIO.new
+
+      allow($stderr).to receive(:write) { |output| stderr.write(output) }
+
+      expect {
+        RijnCLI.start([
+          "encrypt",
+          "--value", "Hello, Rijn!",
+          "--key", key
+        ])
+      }.to raise_error(SystemExit) { |error|
+        expect(error.status).not_to eq(0)
+      }
+    
+      expect(stderr.string).to include("Key must be 128, 192, or 256 bits.")
+    end
   end
 
   describe "decrypt" do
-    it "outputs the decrypted value" do
-      key = generate_key
-      value = "Hello, Rijn!"
-      encrypted = Rijn.encrypt(value, key)
+    [128, 192, 256].each do |bits|
+      it "decrypts with a #{bits}-bit key" do
+        key = generate_key(bits)
+        value = "Hello, Rijn!"
+        encrypted = Rijn.encrypt(value, key)
 
-      stdout = StringIO.new
-      allow($stdout).to receive(:write) { |output| stdout.write(output) }
+        stdout = StringIO.new
+        allow($stdout).to receive(:write) { |output| stdout.write(output) }
 
-      RijnCLI.start([
-        "decrypt",
-        "--value", encrypted,
-        "--key", key
-      ])
-
-      expect(stdout.string.strip).to eq(value)
+        RijnCLI.start([
+          "decrypt",
+          "--value", encrypted,
+          "--key", key
+        ])
+      
+        expect(stdout.string.strip).to eq(value)
+      end
     end
 
     it "prompts for missing values" do
@@ -139,16 +164,47 @@ RSpec.describe RijnCLI do
   end
 
   describe "keygen" do
-    it "outputs a generated encryption key" do
+    it "outputs a generated encryption key with default bits" do
       key = "test-key"
-
+    
       allow(Rijn).to receive(:generate_key).and_return(key)
-
+    
       expect {
         RijnCLI.start(["keygen"])
       }.to output("#{key}\n").to_stdout
+    
+      expect(Rijn).to have_received(:generate_key).with(256)
+    end
+  
+    [128, 192, 256].each do |bits|
+      it "passes --bits #{bits} through to Rijn.generate_key" do
+        key = "test-key"
+    
+        allow(Rijn).to receive(:generate_key).with(bits).and_return(key)
+    
+        expect {
+          RijnCLI.start(["keygen", "--bits", bits])
+        }.to output("#{key}\n").to_stdout
+      
+        expect(Rijn).to have_received(:generate_key).with(bits)
+      end
+    end
 
-      expect(Rijn).to have_received(:generate_key)
+    it "reports an invalid key size" do
+      stderr = StringIO.new
+
+      allow($stderr).to receive(:write) { |output| stderr.write(output) }
+
+      expect {
+        RijnCLI.start([
+          "keygen",
+          "--bits", "512"
+        ])
+      }.to raise_error(SystemExit) { |error|
+        expect(error.status).not_to eq(0)
+      }
+    
+      expect(stderr.string).to include("Key must be 128, 192, or 256 bits.")
     end
   end
 end

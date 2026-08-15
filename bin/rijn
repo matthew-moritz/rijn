@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
-require_relative "../lib/rijn_cli"
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+
+require "rijn_cli"
 
 RijnCLI.start(ARGV)

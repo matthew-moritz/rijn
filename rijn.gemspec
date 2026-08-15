@@ -3,7 +3,7 @@ require_relative "lib/rijn"
 Gem::Specification.new do |spec|
   spec.name = "rijn"
   spec.version = Rijn::VERSION
-  spec.summary = "A small CLI for AES-256-GCM encryption"
+  spec.summary = "A small CLI for AES-GCM encryption"
   spec.authors = ["matthew-moritz"]
 
   spec.license = "MIT"
