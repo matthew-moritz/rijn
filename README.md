@@ -1,176 +1,110 @@
 # Rijn
 
-A small Ruby library and CLI for AES-GCM encryption. Supports 128-bit, 192-bit, and 256-bit keys.
+![CI](https://github.com/matthew-moritz/rijn/actions/workflows/main.yml/badge.svg)
+![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.4-CC342D?logo=ruby&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-The name "Rijn" comes from Rijndael, the cipher AES is built from. The library itself uses AES, via Ruby's OpenSSL bindings — not a custom Rijndael implementation.
+A small Ruby library and CLI for AES-GCM encryption.
 
-## Installation
+## Why "Rijn"
 
-Add Rijn to your application's `Gemfile`:
+In 1998, two Belgian cryptographers entered a contest run by the US government. Their cipher was called Rijndael. It won. The US government renamed it AES, the Advanced Encryption Standard, and it now protects most of the internet.
 
-```ruby
-gem "rijn"
-```
+Rijn takes its name from Rijndael *(say it "Rain-dahl" or "Rhine-dahl" — Rijndael's creators said either works)*. It does not reimplement the cipher. It uses AES through Ruby's own OpenSSL bindings, tested and fast, and wraps it in an API you can actually enjoy using.
 
-Then run:
-```ruby
-bundle install
-```
+## Get started in 60 seconds
 
-Or install the gem directly:
-```ruby
+Install the gem:
+
+```bash
 gem install rijn
 ```
 
+Generate a key, encrypt something, decrypt it back:
+
+```console
+$ rijn keygen
+RQ+WWoEXHK+2c0adDvepnxoyaRsF7cvaG9QUTXKPxFk=
+
+$ rijn encrypt -v "Hello, Rijn!" -k "RQ+WWoEXHK+2c0adDvepnxoyaRsF7cvaG9QUTXKPxFk="
+tUFnikYpDHYbpaYeyFzaNHAeut5CAjPLdBhUB8mAacFQAgzyrWpKnA==
+
+$ rijn decrypt -v "tUFnikYpDHYbpaYeyFzaNHAeut5CAjPLdBhUB8mAacFQAgzyrWpKnA==" -k "RQ+WWoEXHK+2c0adDvepnxoyaRsF7cvaG9QUTXKPxFk="
+Hello, Rijn!
+```
+
+That's the whole library. Three commands, three methods, one cipher.
+
+## What you get
+
+- **AES-GCM at 128, 192, or 256 bits.** You choose the size. Rijn picks a safe default.
+- **A fresh IV every time.** You never generate or track it yourself.
+- **Tamper detection built in.** A changed or truncated ciphertext fails to decrypt. It never silently returns garbage.
+- **A three-method Ruby API.** `generate_key`, `encrypt`, `decrypt`. Nothing else to learn.
+
 ## Ruby API
 
-Require Rijn:
 ```ruby
 require "rijn"
-```
 
-Generate an encryption key:
-```ruby
-key = Rijn.generate_key
-```
+key = Rijn.generate_key          # 256 bits by default
+key = Rijn.generate_key(128)     # or 128, or 192
 
-By default, this makes a 256-bit key. Pass `128`, `192`, or `256` to choose a size:
-```ruby
-key = Rijn.generate_key(128)
-```
-
-Encrypt a value:
-```ruby
 encrypted = Rijn.encrypt("Hello, Rijn!", key)
-```
-
-Decrypt it:
-```ruby
 plaintext = Rijn.decrypt(encrypted, key)
-```
-
-The decrypted value will be:
-```ruby
-"Hello, Rijn!"
+# => "Hello, Rijn!"
 ```
 
 ## CLI
 
-Generate an encryption key:
-
 ```bash
-rijn keygen
-```
+rijn keygen                                    # generate a key
+rijn keygen --bits 128                         # or -b, choose a size
 
-Use `--bits` (or `-b`) to set the key size:
-```bash
-rijn keygen --bits 128
-```
-
-Encrypt a value:
-```bash
-rijn encrypt --value "Hello, Rijn!" --key "<key>"
-```
-
-Or use the short options:
-```bash
-rijn encrypt -v "Hello, Rijn!" -k "<key>"
-```
-
-Decrypt an encrypted value:
-```bash
+rijn encrypt --value "Hello, Rijn!" --key "<key>"   # or -v / -k
 rijn decrypt --value "<encrypted-value>" --key "<key>"
-```
 
-Or use the interactive prompts:
-```bash
-rijn encrypt
+rijn encrypt                                   # skip a flag, get prompted for it
 rijn decrypt
+
+rijn version                                   # print the installed version
+rijn help                                      # list every command
+rijn help encrypt                              # help for one command
 ```
 
-Display the version:
-```bash
-rijn version
-```
+## Key management
 
-Display available commands:
-```bash
-rijn help
-```
+Rijn keys are Base64-encoded strings, 128, 192, or 256 bits. `Rijn.generate_key` defaults to 256.
 
-Get help for a specific command:
-```bash
-rijn help encrypt
-rijn help decrypt
-```
+Always generate keys with `Rijn.generate_key`. Never hand-write or edit key material.
 
-## Key Management
-
-Rijn supports 128-bit, 192-bit, and 256-bit encryption keys, represented as Base64-encoded strings. `Rijn.generate_key` uses 256 bits by default.
-
-Generate a new key with:
-
-```bash
-rijn keygen
-```
-
-Keep encryption keys secret. Anyone with the key can decrypt values encrypted with it.
-
-Do not commit encryption keys to source control or include them directly in application source code.
-
-For applications, store keys in an appropriate secret-management system such as environment variables, a secrets manager, or another secure configuration mechanism.
-
-Keys should be generated using `Rijn.generate_key` rather than manually creating or modifying key material.
+Keep keys secret. Anyone holding a key can decrypt anything encrypted with it. Do not commit keys to source control, and do not hardcode them in application code. Store them in an environment variable, a secrets manager, or another secure configuration system.
 
 ## Security
 
-Rijn uses AES-GCM for authenticated encryption, at 128, 192, or 256 bits.
+AES-GCM gives you two guarantees:
 
-AES-GCM provides both:
+- **Confidentiality** — no one reads an encrypted value without the key.
+- **Integrity** — any change to an encrypted value is caught at decryption time.
 
-- Confidentiality: encrypted values cannot be read without the encryption key.
-- Integrity and authenticity: modifications to an encrypted value are detected during decryption.
+Rijn generates a fresh IV for every encryption call and stores it alongside the ciphertext. The IV is not secret; it does not need to be. Decryption fails if the value was tampered with, or if the key is wrong.
 
-Rijn generates a fresh initialization vector (IV) for each encryption operation. The IV does not need to be kept secret and is stored as part of the encrypted value.
-
-Decryption fails if the encrypted value has been modified or the wrong key is supplied.
-
-Rijn does not provide key storage, key rotation, key distribution, or access control. Applications using Rijn are responsible for managing encryption keys securely.
-
-Rijn should not be used as a substitute for a dedicated secrets-management system.
+Rijn does not manage key storage, rotation, distribution, or access control. That responsibility stays with your application. Rijn is a cipher, not a secrets manager.
 
 ## Development
 
-Clone the repository and install the dependencies:
-
-```rijn
-bundle install
-```
-
-Run the test suite:
 ```bash
-bundle exec rspec
-```
-
-Build the gem:
-```bash
-gem build rijn.gemspec
-```
-
-Install the locally built gem:
-```bash
-gem install ./rijn-0.1.0.gem
-```
-
-Run the CLI directly from the source tree:
-```bash
-./bin/rijn
+bundle install              # install dependencies
+bundle exec rspec           # run the test suite
+gem build rijn.gemspec      # build the gem
+gem install ./rijn-0.4.0.gem  # install your local build
+./bin/rijn                  # run the CLI from source
 ```
 
 ## Requirements
 
-- Ruby 3.4 or newer
+Ruby 3.4 or newer.
 
 ## License
 
-Rijn is released under the MIT License. See `LICENSE.md` for details.
+MIT. See `LICENSE.md`.
